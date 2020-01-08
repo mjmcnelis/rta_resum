@@ -24,16 +24,16 @@ const double T0_GeV = 0.6;                // initial temperature (GeV)
 const int N_iterations = 10;              // number of Landau matching iterations
 
 const bool tau_R_constant = false;        // constant relaxation time switch (true => constant, false => conformal)
-const double tau_R = 0.5;                 // constant relaxation time value
+const double tau_R = 0.5;                 // constant relaxation time value (the particles are still massless; no particle mass parameter built in)
 
 const double etas = 3. / (4. * M_PI);     // shear viscosity
 const double xi0 = 0.;                    // anisotropy parameter xi = (-1, infty)
 
-const int N_tau = 4001;                   // longitudinal proper time points (uniform grid)
+const int N_tau = 5001;                   // longitudinal proper time points (uniform grid)
 const double tau_min = 0.25;
-const double tau_max = 20.25;
+const double tau_max = 50.25;
 
-const int gauss_pts = 48;                 // gauss-legendre integration points for the second term (32, 48 or 100)
+const int gauss_pts = 100;                 // gauss-legendre integration points for the second term (32, 48 or 100)
 //::::::::::::::::::::::::::::::::::::::::
 
 
@@ -319,21 +319,30 @@ int main()
 
 
 
-  // compute first derivative of pibar
+  // compute derivatives of pibar
   double pibar_derivative[N_tau];
-  compute_first_derivative(pibar_derivative, pibar, N_tau, dtau);
+  double pibar_second_derivative[N_tau];
+  double pibar_third_derivative[N_tau];
+  double pibar_fourth_derivative[N_tau];
 
-
-
+  compute_first_derivative(pibar_derivative, pibar, N_tau, dtau); 
+  compute_second_derivative(pibar_second_derivative, pibar, N_tau, dtau);
+  compute_third_derivative(pibar_third_derivative, pibar, N_tau, dtau);
+  compute_fourth_derivative(pibar_fourth_derivative, pibar, N_tau, dtau);
 
   // write results to file
   //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  FILE *fp_temp, *fp_pibar, *fp_pibar_derivative, *fp_tau_R, *fp_z;
+  FILE *fp_temp, *fp_tau_R, *fp_z;
+  FILE *fp_pibar, *fp_pibar_derivative, *fp_pibar_2nd_derivative, *fp_pibar_3rd_derivative, *fp_pibar_4th_derivative;
   fp_temp = fopen("results/T_exact.dat", "w");
-  fp_pibar = fopen("results/pibar_exact.dat", "w");
-  fp_pibar_derivative = fopen("results/pibar_derivative_exact.dat", "w");
   fp_tau_R = fopen("results/tau_r_exact.dat", "w");
   fp_z = fopen("results/z_exact.dat", "w");
+
+  fp_pibar = fopen("results/pibar_exact.dat", "w");
+  fp_pibar_derivative = fopen("results/pibar_derivative_exact.dat", "w");
+  fp_pibar_2nd_derivative = fopen("results/pibar_2nd_derivative_exact.dat", "w");
+  fp_pibar_3rd_derivative = fopen("results/pibar_3rd_derivative_exact.dat", "w");
+  fp_pibar_4th_derivative = fopen("results/pibar_4th_derivative_exact.dat", "w");
 
   for(int i = 0; i < N_tau; i++)
   {
@@ -343,17 +352,24 @@ int main()
     double z = z_function(t, tau_min, gauss_pts, root, weight, T_spline);
 
     fprintf(fp_temp, "%.5f %.8f\n", t, T);
-    fprintf(fp_pibar, "%.5f %.8f\n", t, pibar[i]);
-    fprintf(fp_pibar_derivative, "%.5f %.8f\n", t, pibar_derivative[i]);
-    fprintf(fp_tau_R, "%.5f %.8f\n", t, tau_R);
-    fprintf(fp_z, "%.5f %.8f\n", t, z);
+    fprintf(fp_tau_R, "%.5f %.16f\n", t, tau_R);
+    fprintf(fp_z, "%.5f %.16f\n", t, z);
+    fprintf(fp_pibar, "%.5f %.16f\n", t, pibar[i]);
+    fprintf(fp_pibar_derivative, "%.5f %.16f\n", t, pibar_derivative[i]);
+    fprintf(fp_pibar_2nd_derivative, "%.5f %.16f\n", t, pibar_second_derivative[i]);
+    fprintf(fp_pibar_3rd_derivative, "%.5f %.16f\n", t, pibar_third_derivative[i]);
+    fprintf(fp_pibar_4th_derivative, "%.5f %.16f\n", t, pibar_fourth_derivative[i]);
   }
 
   fclose(fp_temp);
-  fclose(fp_pibar);
-  fclose(fp_pibar_derivative);
   fclose(fp_tau_R);
   fclose(fp_z);
+  fclose(fp_pibar);
+  fclose(fp_pibar_derivative);
+  fclose(fp_pibar_2nd_derivative);
+  fclose(fp_pibar_3rd_derivative);
+  fclose(fp_pibar_4th_derivative);
+  
   //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   gsl_spline_free(T_spline);
