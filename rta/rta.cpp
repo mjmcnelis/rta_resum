@@ -22,11 +22,10 @@ const double hbarc = 0.197326938;                         // hbarc [GeV.fm]
 //::::::::::::::::::::::::::::::::::::::::
 const double T0_GeV = 0.6;                // initial temperature (GeV)
 const int N_iterations = 10;              // number of Landau matching iterations
-
 const bool tau_R_constant = false;        // constant relaxation time switch (true => constant, false => conformal)
 const double tau_R = 0.5;                 // constant relaxation time value (the particles are still massless; no particle mass parameter built in)
 
-const double etas = 3. / (4. * M_PI);     // shear viscosity
+const double etas = 10. / (4. * M_PI);     // shear viscosity
 const double xi0 = 0.;                    // anisotropy parameter xi = (-1, infty)
 
 const int N_tau = 5001;                   // longitudinal proper time points (uniform grid)
@@ -325,7 +324,7 @@ int main()
   double pibar_third_derivative[N_tau];
   double pibar_fourth_derivative[N_tau];
 
-  compute_first_derivative(pibar_derivative, pibar, N_tau, dtau); 
+  compute_first_derivative(pibar_derivative, pibar, N_tau, dtau);
   compute_second_derivative(pibar_second_derivative, pibar, N_tau, dtau);
   compute_third_derivative(pibar_third_derivative, pibar, N_tau, dtau);
   compute_fourth_derivative(pibar_fourth_derivative, pibar, N_tau, dtau);
@@ -369,7 +368,7 @@ int main()
   fclose(fp_pibar_2nd_derivative);
   fclose(fp_pibar_3rd_derivative);
   fclose(fp_pibar_4th_derivative);
-  
+
   //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   gsl_spline_free(T_spline);
