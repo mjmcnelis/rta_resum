@@ -25,14 +25,14 @@ const int N_iterations = 10;              // number of Landau matching iteration
 const bool tau_R_constant = false;        // constant relaxation time switch (true => constant, false => conformal)
 const double tau_R = 0.5;                 // constant relaxation time value (the particles are still massless; no particle mass parameter built in)
 
-const double etas = 10. / (4. * M_PI);     // shear viscosity
+const double etas = 3. / (4. * M_PI);     // shear viscosity
 const double xi0 = 0.;                    // anisotropy parameter xi = (-1, infty)
 
-const int N_tau = 5001;                   // longitudinal proper time points (uniform grid)
+const int N_tau = 4001;                   // longitudinal proper time points (uniform grid)
 const double tau_min = 0.25;
-const double tau_max = 50.25;
+const double tau_max = 20.25;
 
-const int gauss_pts = 100;                 // gauss-legendre integration points for the second term (32, 48 or 100)
+const int gauss_pts = 48;                 // gauss-legendre integration points for the second term (32, 48 or 100)
 //::::::::::::::::::::::::::::::::::::::::
 
 
