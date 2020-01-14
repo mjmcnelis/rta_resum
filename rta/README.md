@@ -1,6 +1,6 @@
-rta (c) Gojko Vujanovic and Leonardo Tinti
+Gojko Vujanovic (c) 2018
 
-The code solves the conformal RTA Bjorken solution. It was provided by Gojko Vujanovic (I later modified it)
+The code solves the conformal RTA Bjorken solution. It was originally provided by Gojko Vujanovic (see https://github.com/gvujan/Boltzmann_equation_solver_w_RTA_and_Bjorken_sym)
 
 	L. Tinti, G. Vujanovic, J. Noronha, U. Heinz, Resummed hydrodynamic expansion for a plasma of particles interacting with fields, arXiv:1808.06436
 

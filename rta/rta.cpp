@@ -1,3 +1,11 @@
+// RTA_BLBE - A solver for the Relaxation Time Approximation (RTA) in the Bjorken Limit (BL) (i.e. using the Bjorken symmetry) of the Boltzmann Equation (BE)
+// Author: Gojko Vujanovic 
+// Licence: GNU General Public Licence version 3, see details at http://www.gnu.org/licenses/gpl-3.0.html
+// Copywritht (c) 2018 
+// This code was used to obtain the solution in Physcal Review C 97, no.6, 064909 (2018)
+//
+// Last edited: 1/8/20 Mike McNelis
+//
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
