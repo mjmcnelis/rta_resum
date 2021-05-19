@@ -17,5 +17,5 @@ To compile and run, type make. The data is stored in `results`. To transfers the
 
 	sh copy_results_to_bjorken_plot.sh generator		# or ffe_1, ffe_2, attractor
 
-You can edit the `PARAMETERS` macro in `rta.cpp` to generate data for each figure in the paper (and thesis).
+You can edit the `PARAMETERS` macro in `rta.cpp` to generate data for each figure in my thesis.
 
