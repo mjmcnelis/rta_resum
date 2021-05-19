@@ -1,6 +1,5 @@
 **Gojko Vujanovic (c)**
 
-# Summary
 This is my updated version of a [code](https://github.com/gvujan/Boltzmann_equation_solver_w_RTA_and_Bjorken_sym) provided by Gojko Vujanovic.
 
 	L. Tinti, G. Vujanovic, J. Noronha, U. Heinz, Resummed hydrodynamic expansion for a plasma of particles interacting with fields, arXiv:1808.06436
