@@ -1,7 +1,7 @@
 **RTA Resum (c) Mike McNelis** 
 
 Created on 12/11/2019 by Mike McNelis \
-Last edited in 5/19/2021 by Mike McNelis
+Last edited on 5/19/2021 by Mike McNelis
 
 # Summary
 
