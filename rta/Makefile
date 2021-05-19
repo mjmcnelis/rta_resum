@@ -31,6 +31,8 @@ EXE = rta
 # $^ = + everything else
 
 $(EXE): $(OBJ)
+	rm -r results
+	mkdir results
 	echo "\nLinking: $@ ($(COMPILER))"
 	$(COMPILER) -o $@ $^ $(LIBS) $(INCLUDES)
 	echo "\nRunning...\n"

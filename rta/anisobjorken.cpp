@@ -1,5 +1,6 @@
 #include <math.h>
 #include <cmath>
+#include <iostream>
 
 const double delta = 0.01;
 
@@ -130,7 +131,7 @@ double dpl_dt(double e, double pl, double t, double prefactor, double etas)
 }
 
 
-void run_aniso_bjorken(double *Temp, double pl0, double t0, double dt, int Nt, double prefactor, double etas)
+void run_aniso_bjorken(double *Temp, double pl0, double t0, double dt, int Nt, double prefactor, double etas, bool output)
 {
   double t  = t0;
   double T0 = Temp[0];
@@ -138,8 +139,22 @@ void run_aniso_bjorken(double *Temp, double pl0, double t0, double dt, int Nt, d
   double e = prefactor * pow(T0, 4);
   double pl = pl0;
 
+  FILE *shear;
+
+  if(output)
+  {
+    shear = fopen("results/pibar_aniso.dat", "w");
+  }
+
   for(int i = 1; i < Nt; i++)
   {
+    double pi = e/3. - pl;
+
+    if(output)
+    {
+      fprintf(shear, "%.6e\t%.6e\n", t, 3. * pi / e);     // pi / peq
+    }
+
     double e1  = dt *  de_dt(e, pl, t, prefactor, etas);
     double pl1 = dt * dpl_dt(e, pl, t, prefactor, etas);
 
@@ -158,6 +173,11 @@ void run_aniso_bjorken(double *Temp, double pl0, double t0, double dt, int Nt, d
     t += dt;
 
     Temp[i] = pow(e / prefactor, 0.25);
+  }
+
+  if(output)
+  {
+    fclose(shear);
   }
 }
 

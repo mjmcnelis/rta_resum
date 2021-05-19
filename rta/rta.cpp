@@ -1,10 +1,10 @@
 // RTA_BLBE - A solver for the Relaxation Time Approximation (RTA) in the Bjorken Limit (BL) (i.e. using the Bjorken symmetry) of the Boltzmann Equation (BE)
-// Author: Gojko Vujanovic 
+// Author: Gojko Vujanovic
 // Licence: GNU General Public Licence version 3, see details at http://www.gnu.org/licenses/gpl-3.0.html
-// Copyright (c) 2018 
+// Copyright (c) 2018
 // This code was used to obtain the solution in Physcal Review C 97, no.6, 064909 (2018)
 //
-// Last edited: 1/8/20 Mike McNelis
+// Last edited: 5/19/2021 by Mike McNelis
 //
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,32 +16,63 @@
 #include "include/hypergeometric.h"
 #include "include/derivative.h"
 #include "include/anisobjorken.h"
+#include "include/viscousbjorken.h"
+#include "include/ffebjorken.h"
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_interp.h>
 using namespace std;
 
+#define PARAMETERS 2                             // generator expansion = 0, FFE hydrodynamics = (1,2), attractor if >= 3
+
 // constants
-const double prefactor = 3. / (M_PI * M_PI);              // energy density prefactor
-const double hbarc = 0.197326938;                         // hbarc [GeV.fm]
+const double prefactor = 3. / (M_PI * M_PI);     // energy density prefactor
+const double hbarc = 0.197326938;                // hbarc [GeV.fm]
 
+// parameters
+const bool tau_R_constant = false;               // constant relaxation time switch (true => constant, false => conformal)
+const double tau_R = 0.5;                        // constant relaxation time value (the particles are still massless; no particle mass parameter built in)
+const int gauss_pts = 32;                        // gauss-legendre integration points for the second term (32, 48 or 100)
+const int N_iterations = 5;                      // number of Landau matching iterations
 
-// free parameters
-//::::::::::::::::::::::::::::::::::::::::
-const double T0_GeV = 0.6;                // initial temperature (GeV)
-const int N_iterations = 10;              // number of Landau matching iterations
-const bool tau_R_constant = false;        // constant relaxation time switch (true => constant, false => conformal)
-const double tau_R = 0.5;                 // constant relaxation time value (the particles are still massless; no particle mass parameter built in)
+#if (PARAMETERS == 0)
+  // parameters for hydrodynamic generator expansion plot (Chapter 8, Fig. 1)
+  const double T0_GeV = 0.6;                     // initial temperature (GeV)
+  const double etas = 3./(4.*M_PI);              // shear viscosity
+  const double xi0 = 0.;                         // anisotropy parameter xi = (-1, infty)
 
-const double etas = 3. / (4. * M_PI);     // shear viscosity
-const double xi0 = 0.;                    // anisotropy parameter xi = (-1, infty)
+  const int N_tau = 4001;// longitudinal proper time points (uniform grid)
+  const double tau_min = 0.25;
+  const double tau_max = 20.25;
 
-const int N_tau = 4001;                   // longitudinal proper time points (uniform grid)
-const double tau_min = 0.25;
-const double tau_max = 20.25;
+#elif (PARAMETERS == 1)
+  // parameters for far-from-equilibrium hydrodynamics with equilibrium initial conditions  (Chapter 8, Fig. 2a)
+  const double T0_GeV = 0.75;                    // initial temperature (GeV)
+  const double etas = 10./(4.*M_PI);             // shear viscosity
+  const double xi0 = 0;                          // anisotropy parameter xi (for Chapter 8, Fig. 2a)
+  const int N_tau = 20001;                       // longitudinal proper time points (uniform grid)
+  const double tau_min = 0.1;                    // starting time
+  const double tau_max = 100.1;                  // final time
 
-const int gauss_pts = 48;                 // gauss-legendre integration points for the second term (32, 48 or 100)
-//::::::::::::::::::::::::::::::::::::::::
+  #elif (PARAMETERS == 2)
+  // parameters for far-from-equilibrium hydrodynamics with anisotropic initial conditions (Chapter 8, Fig. 2b)
+  const double T0_GeV = 0.75;                    // initial temperature (GeV)
+  const double etas = 10./(4.*M_PI);             // shear viscosity
+  const double xi0 = 9999.;                      // anisotropy parameter xi (for Chapter 8, Fig. 2b)
+  const int N_tau = 20001;                       // longitudinal proper time points (uniform grid)
+  const double tau_min = 0.1;                    // starting time
+  const double tau_max = 100.1;                  // final time
+
+#else
+  // parameters for conformal RTA attractor (Chapter 8, Fig. 3; warning takes a long time and results file size is large)
+  const double T0_GeV = 0.000942202;             // initial temperature (GeV)
+  const double etas = 3./(4.*M_PI);              // shear viscosity
+  const double xi0 = 5900.0;                     // anisotropy parameter xi = (-1, infty)
+  const int N_tau = 7400001;                     // longitudinal proper time points (uniform grid)
+  const double tau_min = 0.25;                   // starting time
+  const double tau_max = 74000.25;               // final time
+
+#endif
 
 
 // cubic spline interpolation
@@ -146,7 +177,6 @@ double D_function(double t2, double t1, bool tau_R_constant, double tau_R, int p
 int main()
 {
   // load gauss data
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   double root[gauss_pts];
   double weight[gauss_pts];
 
@@ -160,13 +190,10 @@ int main()
     fscanf(gauss_file, "%lf\t%lf", &root[i], &weight[i]);
   }
   fclose(gauss_file);
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 
 
   // uniform longitudinal proper time grid
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  double tau[N_tau];
+  double *tau = (double*)malloc(N_tau * sizeof(double));
 
   const double dtau = (tau_max - tau_min)  /  ((double)(N_tau - 1));
 
@@ -174,33 +201,44 @@ int main()
   {
     tau[i] = tau_min  +  dtau * ((double)i);
   }
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 
 
   // starting approximation for temperature profile
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   double T0 = T0_GeV / hbarc;                               // initial temperature [fm^-1]
-  double Temp[N_tau];                                       // temperature grid [fm^-1]
+  double *Temp = (double*)malloc(N_tau * sizeof(double));
   Temp[0] = T0;
 
-  double L0 = T0 / pow(HE_function(1./sqrt(1.+xi0)), 0.25); // initial effective temperature [fm^-1]
+
+  double aL0 = 1. / sqrt(1. + xi0);
+  double L0 = T0 / pow(HE_function(aL0), 0.25); // initial effective temperature [fm^-1]
+
 
   if(!tau_R_constant)                                       // aniso hydro approximation
   {
     // initial longitudinal pressure
-    double pl0 = 1.5 * pow(L0, 4) / (M_PI * M_PI) * HL_function(1./sqrt(1. + xi0));
+    double pl0 = 1.5 * pow(L0, 4) / (M_PI * M_PI) * HL_function(aL0);
 
-    run_aniso_bjorken(Temp, pl0, tau_min, dtau, N_tau, prefactor, etas);
+    // ouput DNMR, Jaiswal and FFE hydro's pibar
+  #if (PARAMETERS == 1) || (PARAMETERS == 2)
+    run_second_order_viscous_bjorken(T0, pl0, tau_min, dtau, N_tau, prefactor, etas);
+    run_third_order_viscous_bjorken(T0, pl0, tau_min, dtau, N_tau, prefactor, etas);
+    run_far_from_equilibrium_bjorken(T0, pl0, tau_min, dtau, N_tau, prefactor, etas, L0, aL0);
+    bool output = true;
+  #else
+    bool output = false;
+  #endif
 
-    FILE *fp_temp0;
-    fp_temp0 = fopen("results/T_aniso.dat", "w");
-    for(int i = 0; i < N_tau; i++)
-    {
-      fprintf(fp_temp0, "%.5f %.8f\n", tau[i], Temp[i]);
+    // run pl matching anisotropic hydro for initial temperature guess
+    run_aniso_bjorken(Temp, pl0, tau_min, dtau, N_tau, prefactor, etas, output);
 
-    }
-    fclose(fp_temp0);
+    // FILE *fp_temp0;
+    // fp_temp0 = fopen("results/T_aniso.dat", "w");
+    // for(int i = 0; i < N_tau; i++)
+    // {
+    //   fprintf(fp_temp0, "%.5e %.5e\n", tau[i], Temp[i]);
+
+    // }
+    // fclose(fp_temp0);
   }
   else                                                      // ideal hydro approximation
   {
@@ -210,19 +248,23 @@ int main()
     }
   }
 
-  FILE *fp_temp_ideal;
-  fp_temp_ideal = fopen("results/T_ideal.dat", "w");
-  for(int i = 0; i < N_tau; i++) fprintf(fp_temp_ideal, "%.5f %.8f\n", tau[i], T0 * pow(tau_min / tau[i], 1./3.));
-  fclose(fp_temp_ideal);
+  // FILE *fp_temp_ideal;
+  // fp_temp_ideal = fopen("results/T_ideal.dat", "w");
+  // for(int i = 0; i < N_tau; i++)
+  // {
+  //   fprintf(fp_temp_ideal, "%.5e %.5e\n", tau[i], T0 * pow(tau_min / tau[i], 1./3.));
+  // }
+  // fclose(fp_temp_ideal);
 
-  double Energy[N_tau];                                     // energy density grid [fm^-4]
+  double *Energy = (double*)malloc(N_tau * sizeof(double));
   Energy[0] = prefactor * pow(T0, 4);
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+
+  printf("w0 = %lf\n", tau_min * tau_R_inverse(Temp[0]));
+  printf("wf = %lf (ahydro)\n\n", tau_max * tau_R_inverse(Temp[N_tau - 1]));
 
 
   // evolve Bjorken energy density and update temperature
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   for(int n = 0; n < N_iterations; n++)                     // loop over iterations
   {
     gsl_spline * T_spline;                                  // construct cubic spline interpolation
@@ -274,7 +316,6 @@ int main()
     printf("Finished iteration %d\n", n + 1);
 
   } // iteration loop
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   gsl_spline * T_spline;                                    // construct cubic spline interpolation
   T_spline = gsl_spline_alloc(gsl_interp_cspline, N_tau);   // of final iteration
@@ -282,8 +323,7 @@ int main()
 
 
   // compute the normalized shear stress pibar = pi / Peq
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  double pibar[N_tau];
+  double *pibar = (double*)malloc(N_tau * sizeof(double));
   pibar[0] = pow(L0 / T0, 4) *  (HT_function(1./sqrt(1.+xi0))/2. - HL_function(1./sqrt(1. + xi0)));
 
 
@@ -322,23 +362,21 @@ int main()
 
     pibar[itau] = D * pow(L0 / T, 4) *  (HT/2. - HL)  +  integral;
   }
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-
-  // compute derivatives of pibar
-  double pibar_derivative[N_tau];
-  double pibar_second_derivative[N_tau];
-  double pibar_third_derivative[N_tau];
-  double pibar_fourth_derivative[N_tau];
+#if (PARAMETERS == 0)
+  // compute derivatives of pibar (right now, only need first derivative for comparing n = 3 generator expansion to exact solution)
+  double *pibar_derivative = (double*)malloc(N_tau * sizeof(double));
+  // double *pibar_second_derivative = (double*)malloc(N_tau * sizeof(double));
+  // double *pibar_third_derivative = (double*)malloc(N_tau * sizeof(double));
+  // double *pibar_fourth_derivative = (double*)malloc(N_tau * sizeof(double));
 
   compute_first_derivative(pibar_derivative, pibar, N_tau, dtau);
-  compute_second_derivative(pibar_second_derivative, pibar, N_tau, dtau);
-  compute_third_derivative(pibar_third_derivative, pibar, N_tau, dtau);
-  compute_fourth_derivative(pibar_fourth_derivative, pibar, N_tau, dtau);
+  // compute_second_derivative(pibar_second_derivative, pibar, N_tau, dtau);
+  // compute_third_derivative(pibar_third_derivative, pibar, N_tau, dtau);
+  // compute_fourth_derivative(pibar_fourth_derivative, pibar, N_tau, dtau);
+#endif
 
   // write results to file
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   FILE *fp_temp, *fp_tau_R, *fp_z;
   FILE *fp_pibar, *fp_pibar_derivative, *fp_pibar_2nd_derivative, *fp_pibar_3rd_derivative, *fp_pibar_4th_derivative;
   fp_temp = fopen("results/T_exact.dat", "w");
@@ -346,10 +384,13 @@ int main()
   fp_z = fopen("results/z_exact.dat", "w");
 
   fp_pibar = fopen("results/pibar_exact.dat", "w");
+
+#if (PARAMETERS == 0)
   fp_pibar_derivative = fopen("results/pibar_derivative_exact.dat", "w");
-  fp_pibar_2nd_derivative = fopen("results/pibar_2nd_derivative_exact.dat", "w");
-  fp_pibar_3rd_derivative = fopen("results/pibar_3rd_derivative_exact.dat", "w");
-  fp_pibar_4th_derivative = fopen("results/pibar_4th_derivative_exact.dat", "w");
+  // fp_pibar_2nd_derivative = fopen("results/pibar_2nd_derivative_exact.dat", "w");
+  // fp_pibar_3rd_derivative = fopen("results/pibar_3rd_derivative_exact.dat", "w");
+  // fp_pibar_4th_derivative = fopen("results/pibar_4th_derivative_exact.dat", "w");
+#endif
 
   for(int i = 0; i < N_tau; i++)
   {
@@ -358,14 +399,22 @@ int main()
     double tau_R = tau_R_function(T);
     double z = z_function(t, tau_min, gauss_pts, root, weight, T_spline);
 
-    fprintf(fp_temp, "%.5f %.8f\n", t, T);
-    fprintf(fp_tau_R, "%.5f %.16f\n", t, tau_R);
-    fprintf(fp_z, "%.5f %.16f\n", t, z);
-    fprintf(fp_pibar, "%.5f %.16f\n", t, pibar[i]);
-    fprintf(fp_pibar_derivative, "%.5f %.16f\n", t, pibar_derivative[i]);
-    fprintf(fp_pibar_2nd_derivative, "%.5f %.16f\n", t, pibar_second_derivative[i]);
-    fprintf(fp_pibar_3rd_derivative, "%.5f %.16f\n", t, pibar_third_derivative[i]);
-    fprintf(fp_pibar_4th_derivative, "%.5f %.16f\n", t, pibar_fourth_derivative[i]);
+    fprintf(fp_temp, "%.8e %.8e\n", t, T);
+    fprintf(fp_tau_R, "%.8e %.8e\n", t, tau_R);
+    fprintf(fp_z, "%.8e %.8e\n", t, z);
+    fprintf(fp_pibar, "%.8e %.8e\n", t, pibar[i]);
+
+  #if (PARAMETERS == 0)
+    fprintf(fp_pibar_derivative, "%.8e %.8e\n", t, pibar_derivative[i]);
+    // fprintf(fp_pibar_2nd_derivative, "%.5e %.5e\n", t, pibar_second_derivative[i]);
+    // fprintf(fp_pibar_3rd_derivative, "%.5e %.5e\n", t, pibar_third_derivative[i]);
+    // fprintf(fp_pibar_4th_derivative, "%.5e %.5e\n", t, pibar_fourth_derivative[i]);
+  #endif
+
+    if(i == N_tau - 1)
+    {
+    	printf("\nwf = %lf\n", t / tau_R);
+    }
   }
 
   fclose(fp_temp);
@@ -373,21 +422,25 @@ int main()
   fclose(fp_z);
   fclose(fp_pibar);
   fclose(fp_pibar_derivative);
-  fclose(fp_pibar_2nd_derivative);
-  fclose(fp_pibar_3rd_derivative);
-  fclose(fp_pibar_4th_derivative);
+  // fclose(fp_pibar_2nd_derivative);
+  // fclose(fp_pibar_3rd_derivative);
+  // fclose(fp_pibar_4th_derivative);
 
-  //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  free(tau);
+  free(Temp);
+  free(Energy);
+  free(pibar);
+
+#if (PARAMETERS == 0)
+  free(pibar_derivative);
+  // free(pibar_second_derivative);
+  // free(pibar_third_derivative);
+  // free(pibar_fourth_derivative);
+#endif
 
   gsl_spline_free(T_spline);
   printf("\n");
   return 0;
 }
-
-
-
-
-
-
 
 
