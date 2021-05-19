@@ -7,7 +7,7 @@ Last edited on 5/19/2021 by Mike McNelis
 
 This repository contains supplemental material for my hydrodynamic generator paper and PhD thesis:
 
-	M. McNelis, U. Heinz, Phys. Rev. C 101 054901 (2020), arXiv:2001.09125
+	M. McNelis, U. Heinz, Phys. Rev. C 101 054901 (2020)
 	M. McNelis, arXiv:2105.06007
 
 
