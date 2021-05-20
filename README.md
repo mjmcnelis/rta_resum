@@ -10,7 +10,7 @@ This repository contains supplemental material for my paper on the RTA hydrodyna
 	M. McNelis, U. Heinz, Phys. Rev. C 101 054901 (2020)
 	M. McNelis, arXiv:2105.06007
 
-The directory `rta` contains a C++ code that evolves the exact solution of the conformal RTA Boltzmann equation (and several hydrodynamic approximations). I used this code to generate the plots in my thesis. 
+The directory `rta` contains a C++ code that evolves the exact solution of the conformal RTA Boltzmann equation (and several hydrodynamic models). I used this code to generate the plots in my thesis. 
 
 The notebook in `generator_expansion` demonstrates the correspondence betweeen the hydrodynamic generator and RTA Chapman-Enskog expansion. A more concrete proof can be found in Appendix E.1 of the thesis.  
 
