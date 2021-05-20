@@ -23,7 +23,7 @@
 #include <gsl/gsl_interp.h>
 using namespace std;
 
-#define PARAMETERS 2                             // generator expansion = 0, FFE hydrodynamics = (1,2), attractor if >= 3
+#define PARAMETERS 0                             // generator expansion = 0, FFE hydrodynamics = (1,2), attractor if >= 3
 
 // constants
 const double prefactor = 3. / (M_PI * M_PI);     // energy density prefactor
@@ -64,14 +64,13 @@ const int N_iterations = 5;                      // number of Landau matching it
   const double tau_max = 100.1;                  // final time
 
 #else
-  // parameters for conformal RTA attractor (Chapter 8, Fig. 3; warning takes a long time and results file size is large)
+  // parameters for conformal RTA attractor (Chapter 8, Fig. 3; warning takes a very long time and results file size is large)
   const double T0_GeV = 0.000942202;             // initial temperature (GeV)
   const double etas = 3./(4.*M_PI);              // shear viscosity
   const double xi0 = 5900.0;                     // anisotropy parameter xi = (-1, infty)
   const int N_tau = 7400001;                     // longitudinal proper time points (uniform grid)
   const double tau_min = 0.25;                   // starting time
   const double tau_max = 74000.25;               // final time
-
 #endif
 
 
@@ -230,15 +229,6 @@ int main()
 
     // run pl matching anisotropic hydro for initial temperature guess
     run_aniso_bjorken(Temp, pl0, tau_min, dtau, N_tau, prefactor, etas, output);
-
-    // FILE *fp_temp0;
-    // fp_temp0 = fopen("results/T_aniso.dat", "w");
-    // for(int i = 0; i < N_tau; i++)
-    // {
-    //   fprintf(fp_temp0, "%.5e %.5e\n", tau[i], Temp[i]);
-
-    // }
-    // fclose(fp_temp0);
   }
   else                                                      // ideal hydro approximation
   {
@@ -247,14 +237,6 @@ int main()
       Temp[i] = T0 * pow(tau_min / tau[i], 1./3.);
     }
   }
-
-  // FILE *fp_temp_ideal;
-  // fp_temp_ideal = fopen("results/T_ideal.dat", "w");
-  // for(int i = 0; i < N_tau; i++)
-  // {
-  //   fprintf(fp_temp_ideal, "%.5e %.5e\n", tau[i], T0 * pow(tau_min / tau[i], 1./3.));
-  // }
-  // fclose(fp_temp_ideal);
 
   double *Energy = (double*)malloc(N_tau * sizeof(double));
   Energy[0] = prefactor * pow(T0, 4);

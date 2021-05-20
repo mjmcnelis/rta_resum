@@ -1,2 +1,8 @@
 .DS_Store
 
+bjorken_plot/FFE_hydro/xi_0/results
+bjorken_plot/FFE_hydro/xi_9999/results
+bjorken_plot/attractor/results
+bjorken_plot/generator/results
+
+rta/results
