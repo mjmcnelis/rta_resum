@@ -10,10 +10,9 @@ This repository contains supplemental material for my hydrodynamic generator pap
 	M. McNelis, U. Heinz, Phys. Rev. C 101 054901 (2020)
 	M. McNelis, arXiv:2105.06007
 
+The directory `rta` contains a C++ code that evolves the exact solution of the conformal RTA Boltzmann equation (and various hydrodynamic approximations). I used this code to generate the plots in my thesis. 
 
+The notebook in `generator_expansion` demonstrates the correspondence betweeen the hydrodynamic generator and RTA Chapman-Enskog expansion. A more concrete proof can be found in Appendix E.1 of the thesis.  
 
-
-- Hydrodynamic generator series expansion for Bjorken flow with a time-dependent relaxation time
-- Standard and new df corrections to shear stress for conformal RTA Bjorken flow
-- Exact RTA Bjorken solution code
+The notebook in `standard_df_corrections` computes the Chapman-Enskog df corrections up to third order. These are also used to evaluate the terms in the hydrodynamic generator expansion.
 
