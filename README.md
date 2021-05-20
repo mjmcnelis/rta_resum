@@ -5,7 +5,7 @@ Last edited on 5/19/2021 by Mike McNelis
 
 # Summary
 
-This repository contains supplemental material for my hydrodynamic generator paper and PhD thesis:
+This repository contains supplemental material for my paper on the RTA hydrodynamic generator:
 
 	M. McNelis, U. Heinz, Phys. Rev. C 101 054901 (2020)
 	M. McNelis, arXiv:2105.06007
