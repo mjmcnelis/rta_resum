@@ -14,5 +14,5 @@ The directory `rta` contains a C++ code that evolves the exact Bjorken solution 
 
 The notebook in `generator_expansion` demonstrates the correspondence betweeen the hydrodynamic generator and RTA Chapman-Enskog expansion. A more concrete proof can be found in Appendix E.1 of the thesis.  
 
-The notebook in `standard_df_corrections` computes the Chapman-Enskog df corrections up to third order. These are also used to evaluate the terms in the hydrodynamic generator expansion.
+The notebook in `standard_df` computes the Chapman-Enskog df corrections up to third order. These are also used to evaluate the terms in the hydrodynamic generator expansion.
 
