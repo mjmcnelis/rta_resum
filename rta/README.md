@@ -1,4 +1,3 @@
-**Gojko Vujanovic (c)**
 
 ## Summary 
 This is my updated version of a [code](https://github.com/gvujan/Boltzmann_equation_solver_w_RTA_and_Bjorken_sym) provided by Gojko Vujanovic.
