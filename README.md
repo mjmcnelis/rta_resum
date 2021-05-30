@@ -3,7 +3,7 @@
 Created on 12/11/2019 by Mike McNelis \
 Last edited on 5/19/2021 by Mike McNelis
 
-# Summary
+## Summary
 
 This repository contains supplemental material for my paper on the RTA hydrodynamic generator:
 
